@@ -1,3 +1,10 @@
+# To-do list:
+#   1 - Seperate the guessed word as it displays into a more visual manner (ex: "_ _ _ T _ E _ S")
+#   2 - Make the word_list more flexible, readable from a txt file
+#   3 - Make the hangman drawing at all the steps
+#   4 - Implement the coutdown function (game over when hangman full)
+
+
 import re
 import random
 import tkinter as tk
