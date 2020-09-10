@@ -1,5 +1,5 @@
 # To-do list:
-#   1 - Seperate the guessed word as it displays into a more visual manner (ex: "_ _ _ T _ E _ S")
+
 #   2 - Make the word_list more flexible, readable from a txt file
 #   3 - Make the hangman drawing at all the steps
 #   4 - Implement the coutdown function (game over when hangman full)
@@ -11,21 +11,23 @@ import tkinter as tk
 
 
 word_list = ["cookie", "telescope", "robot", "couch", "australia", "zebra", "guitar", "python",
-             "phosphorescent", "highway", "elevator", "woods", "cellar", "kangaroo", "poltergeist", "pineapple", "forbidden", "treasure", "drawer"]
+             "phosphorescent", "highway", "elevator", "woods", "cellar", "kangaroo", "poltergeist", "pineapple", "forbidden", "treasure", "drawer", "garbage", "truck", "ocean", "radar", "groceries", "furniture", "indigo", "moisture", "zoo", "velociraptor", "family", "mushroom", "fireplace"]
 
 
 lucky_number = 0
 word = ""
 steps = 0
-door = "*"
+door = "_"
 answer = []
+mistakes = 0
+used_letters = set()
 
 
 def format_answer():  # Returns the answer as a nice readale string.
 
     global answer
 
-    return "".join(answer)
+    return (" ".join(answer)).upper()
 
 
 def update_answer(letter):
@@ -49,11 +51,37 @@ def start_game():
     set_new_game()
 
 
+def letter_used(letter):
+
+    global used_letters
+
+    used_letters.add(letter)
+    mistakesLabel["text"] = "Used letters: " + (" ".join(used_letters)).upper()
+
+
+def reset_game():
+
+    global mistakes
+    global used_letters
+    global steps
+
+    answerLabel["text"] = ""
+    playButton['text'] = "Play"
+    playButton["state"] = tk.NORMAL
+    validInput['state'] = tk.DISABLED
+    mistakesLabel["text"] = ""
+    used_letters.clear()
+    mistakes = 0
+    steps = 0
+
+
 def check_letter():
 
     global steps
     global answer
     global word
+    global mistakes
+    global used_letters
 
     regex = r"^[a-z]$"  # The pattern locks on a single alphabetical character.
 
@@ -62,22 +90,23 @@ def check_letter():
     if re.search(regex, letter):
 
         if (letter in word) and not (letter in answer):
-            answerLabel[
-                "text"] = f"Well done! For now, you've got {update_answer(letter)}"
+            feedbackLabel[
+                "text"] = f"Well done!"
+            answerLabel["text"] = update_answer(letter)
 
         else:
-            answerLabel[
-                "text"] = f"Bad luck! Try again. For now, you've got {format_answer()}"
+            feedbackLabel[
+                "text"] = f"Bad luck! Try again."
+
+        letter_used(letter)
 
     steps += 1
 
     letterInput.delete(0, tk.END)
 
     if door not in answer:
-        answerLabel["text"] = f"Congratulations, you've guessed the word {format_answer()}. It took you 'only' {steps} guesses."
-        playButton['text'] = "Play"
-        playButton["state"] = tk.NORMAL
-        validInput['state'] = tk.DISABLED
+        feedbackLabel["text"] = f"Congratulations, you've guessed the word {format_answer()}. It took you 'only' {steps} guesses."
+        reset_game()
 
 
 def set_new_game():
@@ -96,11 +125,12 @@ def set_new_game():
     # We put as many placeholders as there are letters in the player's guess.
     answer = [door for i in range(len(word))]
 
-    answerLabel["text"] = "Make your first move!"
+    feedbackLabel["text"] = "Make your first move!"
+    answerLabel["text"] = format_answer()
 
 
 window = tk.Tk()
-window.geometry("600x500")
+window.geometry("700x600")
 window.title("Z-Hangman")
 
 frame1 = tk.Frame(window, width=200, height=100)
@@ -136,10 +166,18 @@ playButton.pack()
 
 answerLabel = tk.Label(
     frame3,
-    text="Waiting...",
-    width=80
+    text="Wanna play a game?",
+    width=100
 )
 answerLabel.pack()
+
+feedbackLabel = tk.Label(
+    frame3,
+    text="Waiting...",
+    width=200
+)
+feedbackLabel.pack()
+
 
 letterInput = tk.Entry(frame4, width=1)
 letterInput.pack()
@@ -151,6 +189,13 @@ validInput = tk.Button(
     state=tk.DISABLED
 )
 validInput.pack()
+
+mistakesLabel = tk.Label(
+    frame4,
+    text="",
+    width=200
+)
+mistakesLabel.pack()
 
 quitButton = tk.Button(
     frame5,
