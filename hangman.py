@@ -1,8 +1,8 @@
 # To-do list:
 
-#   2 - Make the word_list more flexible, readable from a txt file
-#   3 - Make the hangman drawing at all the steps
-#   4 - Implement the coutdown function (game over when hangman full)
+#   1 - Make the word_list more flexible, readable from a txt file
+#   2 - Make the hangman drawing at all the steps
+#   3 - Clean the code with OOP
 
 
 import re
@@ -45,10 +45,36 @@ def update_answer(letter):
 def start_game():
 
     if playButton["text"] == "Play":
-        playButton["text"] = "Guess a letter! :"
+        playButton["text"] = 'Pick a difficulty: "e" for easy, "m" for medium or "h" for hard.'
         playButton["state"] = tk.DISABLED
+        validInput["state"] = tk.NORMAL
+        validInput["command"] = pick_difficulty
 
-    set_new_game()
+
+def pick_difficulty():
+
+    difficulty = {
+        "easy": 10,
+        "medium": 7,
+        "hard": 4
+    }
+
+    letter = letterInput.get()
+    letterInput.delete(0, tk.END)
+
+    possibilities = ["e", "m", "h"]
+
+    if letter in possibilities:
+
+        playButton["text"] = "Guess a letter! :"
+        validInput["command"] = check_letter
+
+        if letter == "e":
+            return set_new_game(difficulty["easy"])
+        elif letter == "m":
+            return set_new_game(difficulty["medium"])
+        elif letter == "h":
+            return set_new_game(difficulty["hard"])
 
 
 def letter_used(letter):
@@ -56,7 +82,9 @@ def letter_used(letter):
     global used_letters
 
     used_letters.add(letter)
-    mistakesLabel["text"] = "Used letters: " + (" ".join(used_letters)).upper()
+    mistakesLabel["text"] = "Used letters: " + \
+        (" ".join(used_letters)).upper() + \
+        " - " + "Mistakes left: " + str(mistakes)
 
 
 def reset_game():
@@ -71,7 +99,6 @@ def reset_game():
     validInput['state'] = tk.DISABLED
     mistakesLabel["text"] = ""
     used_letters.clear()
-    mistakes = 0
     steps = 0
 
 
@@ -97,6 +124,7 @@ def check_letter():
         else:
             feedbackLabel[
                 "text"] = f"Bad luck! Try again."
+            mistakes -= 1
 
         letter_used(letter)
 
@@ -104,23 +132,33 @@ def check_letter():
 
     letterInput.delete(0, tk.END)
 
+    if mistakes <= 0:
+        feedbackLabel["text"] = f"Game over, you've lost! Wanna try again?"
+        reset_game()
+
     if door not in answer:
         feedbackLabel["text"] = f"Congratulations, you've guessed the word {format_answer()}. It took you 'only' {steps} guesses."
         reset_game()
 
 
-def set_new_game():
+def set_new_game(difficulty):
     global lucky_number
     global word
     global steps
     global answer
     global door
+    global mistakes
 
     validInput["state"] = tk.NORMAL
 
     lucky_number = random.randint(0, len(word_list)-1)
     word = word_list[lucky_number]
     steps = 0
+    mistakes = difficulty
+
+    mistakesLabel["text"] = "Used letters: " + \
+        (" ".join(used_letters)).upper() + \
+        " - " + "Mistakes left: " + str(mistakes)
 
     # We put as many placeholders as there are letters in the player's guess.
     answer = [door for i in range(len(word))]
@@ -160,7 +198,7 @@ playButton = tk.Button(
     text=f"Play",
     fg="black",
     command=start_game,
-    width=25,
+    width=150,
     height=5)
 playButton.pack()
 
@@ -185,7 +223,7 @@ letterInput.pack()
 validInput = tk.Button(
     frame4,
     text="Try",
-    command=check_letter,
+    command=pick_difficulty,
     state=tk.DISABLED
 )
 validInput.pack()
